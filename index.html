@@ -1,0 +1,51 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tink Stress Test</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #050506; overflow: hidden; }
+  canvas { display: block; width: 100vw; height: 100vh; touch-action: none; }
+  #boot {
+    position: fixed; inset: 0; display: grid; place-content: center; gap: .75rem;
+    font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: #8a8a95; text-align: center; pointer-events: none;
+  }
+  #boot b { color: #e8e8f0; font-weight: 600; letter-spacing: .08em; }
+  #boot.gone { display: none; }
+</style>
+
+<canvas id="tink"></canvas>
+<div id="boot"><b>TINK</b><span>starting the device…</span></div>
+
+<script type="module">
+  // The glue and the wasm are loaded through a stamp of the binary, so the two can never
+  // come from different builds. They call each other by function-table index, and a
+  // mismatch is not a stale page — it is every call failing its signature check.
+  import init, { start } from './pkg/dev_tink.js?v=46943128f868';
+
+  const boot = document.getElementById('boot');
+  const fail = (message) => {
+    boot.classList.remove('gone');
+    boot.innerHTML = `<b>TINK</b><span>${message}</span>`;
+  };
+
+  if (!navigator.gpu) {
+    fail('This browser has no WebGPU. Safari needs it enabled under<br>Develop &rsaquo; Feature Flags; Firefox needs a recent build.');
+  } else {
+    try {
+      await init({ module_or_path: './pkg/dev_tink_bg.wasm?v=46943128f868' });
+      // This page is one scene: the stress test, on the slate theme — the same words
+      // `cargo run -p dev-tink --release -- scene=stress theme=slate` takes. They come
+      // *after* anything in the query string, and the last word wins, so a knob can still
+      // be set from a link (`?bodies=200000`) while the scene and the theme stay what the
+      // page is for.
+      const query = location.search.replace(/^\?/, '');
+      start((query ? query + ' ' : '') + 'scene=stress theme=slate');
+      // The first frame replaces the canvas contents; the message goes when the loop
+      // has had a chance to run rather than when `start` returns, which is immediate.
+      requestAnimationFrame(() => requestAnimationFrame(() => boot.classList.add('gone')));
+    } catch (e) {
+      fail(String(e));
+    }
+  }
+</script>
