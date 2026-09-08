@@ -21,7 +21,7 @@
   // The glue and the wasm are loaded through a stamp of the binary, so the two can never
   // come from different builds. They call each other by function-table index, and a
   // mismatch is not a stale page — it is every call failing its signature check.
-  import init, { start } from './pkg/dev_tink.js?v=4e9855ec1346';
+  import init, { start } from './pkg/dev_tink.js?v=46900ebe19c9';
 
   const boot = document.getElementById('boot');
   const fail = (message) => {
@@ -33,7 +33,7 @@
     fail('This browser has no WebGPU. Safari needs it enabled under<br>Develop &rsaquo; Feature Flags; Firefox needs a recent build.');
   } else {
     try {
-      await init({ module_or_path: './pkg/dev_tink_bg.wasm?v=4e9855ec1346' });
+      await init({ module_or_path: './pkg/dev_tink_bg.wasm?v=46900ebe19c9' });
       // This page is one scene: the stress test, on the slate theme — the same words
       // `cargo run -p dev-tink --release -- scene=stress theme=slate` takes. They come
       // *after* anything in the query string, and the last word wins, so a knob can still
